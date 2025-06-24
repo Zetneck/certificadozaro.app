@@ -10,6 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -104,8 +105,13 @@
   <button onclick="ajustarZoom(-0.1)">➖ Zoom</button>
   <button onclick="ajustarZoom(0.1)">➕ Zoom</button>
   <button onclick="generarPDF()">Descargar PDF</button>
-  
-<div id="error-msg" style="color: #f87171; margin-top: 10px;"></div>
+  <button id="btnCorreo" onclick="mostrarCampoCorreo()">Enviar por correo</button>
+  <div id="correo-section" style="display:none; margin-top:10px;">
+    <input type="email" id="correo_destino" placeholder="Correo destino">
+    <button onclick="enviarCorreo()">Enviar</button>
+  </div>
+
+  <div id="error-msg" style="color: #f87171; margin-top: 10px;"></div>
 </div>
 
     </div>
@@ -173,9 +179,50 @@ function validarCampos() {
           html2canvas: { scale: 3, useCORS: true },
           jsPDF: { unit: 'px', format: [1800, 1273], orientation: 'landscape' }
         };
-        html2pdf().set(opt).from(element).save();
+    html2pdf().set(opt).from(element).save();
       }, 100);
     }
+
+function mostrarCampoCorreo() {
+  document.getElementById('correo-section').style.display = 'block';
+  document.getElementById('btnCorreo').style.display = 'none';
+  const input = document.getElementById('correo_destino');
+  if (input) input.focus();
+}
+
+function enviarCorreo() {
+  if (!validarCampos()) return;
+  const correo = document.getElementById("correo_destino").value;
+  if (!correo) {
+    mostrarError("Ingresa un correo destino.");
+    return;
+  }
+  actualizarCampos();
+  const element = document.getElementById("certificate");
+  const remolque = document.getElementById("remolque").value || "certificado";
+  const opt = {
+    margin: 0,
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 3, useCORS: true },
+    jsPDF: { unit: 'px', format: [1800, 1273], orientation: 'landscape' }
+  };
+  html2pdf().set(opt).from(element).outputPdf('blob').then(blob => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      const params = { to_email: correo };
+      emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', params, 'YOUR_PUBLIC_KEY', {
+        attachments: [{ name: `Certificado_${remolque}.pdf`, data: base64 }]
+      }).then(() => {
+        alert('Correo enviado');
+      }).catch(err => {
+        alert('Error al enviar correo');
+        console.error(err);
+      });
+    };
+    reader.readAsDataURL(blob);
+  });
+}
     
 function ajustarZoom(delta) {
   zoomLevel += delta;
@@ -185,6 +232,7 @@ function ajustarZoom(delta) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+      emailjs.init('YOUR_PUBLIC_KEY');
       flatpickr("#vigencia_inicio", {
         dateFormat: "d/m/Y",
         locale: "es",
