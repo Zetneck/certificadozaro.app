@@ -213,16 +213,22 @@ function enviarCorreo() {
   actualizarCampos();
   const element = document.getElementById("certificate");
   const remolque = document.getElementById("remolque").value || "certificado";
+  // Opciones más ligeras para reducir el tamaño del PDF adjunto
   const opt = {
     margin: 0,
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 3, useCORS: true },
-    jsPDF: { unit: 'px', format: [1800, 1273], orientation: 'landscape' }
+    image: { type: 'jpeg', quality: 0.5 },
+    html2canvas: { scale: 1.5, useCORS: true },
+    jsPDF: { unit: 'px', format: [1800, 1273], orientation: 'landscape', compress: true }
   };
   html2pdf().set(opt).from(element).outputPdf('blob').then(blob => {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result.split(',')[1];
+      // La API de EmailJS limita el tama\xc3\xb1o de las variables a 50KB
+      if (base64.length > 70000) { // ~50KB en bytes al estar codificado en base64
+        mostrarError('El PDF generado supera el l\xc3\xadmite de 50KB. Intenta reducir su tama\xc3\xb1o.');
+        return;
+      }
       const params = {
         to_email: correo,
         attachments: [{ name: `Certificado_${remolque}.pdf`, data: `data:application/pdf;base64,${base64}` }]
