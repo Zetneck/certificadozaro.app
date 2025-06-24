@@ -98,6 +98,10 @@
       <input type="text" id="vigencia_inicio" placeholder="Selecciona fecha">
       <label for="vigencia_fin">Fecha fin: *</label>
       <input type="text" id="vigencia_fin" placeholder="Selecciona fecha">
+      <label style="display:flex; align-items:center; margin-top:10px;">
+        <input type="checkbox" id="recordar_datos" style="margin-right:6px;">
+        Recordar datos
+      </label>
       
 <button onclick="generarPDF()">Descargar PDF</button>
 <!-- Nuevos botones para zoom -->
@@ -183,44 +187,73 @@ function ajustarZoom(delta) {
   document.getElementById("certificate-container").style.transform = `scale(${zoomLevel})`;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-      flatpickr("#vigencia_inicio", {
-        dateFormat: "d/m/Y",
-        locale: "es",
-        onChange: actualizarCampos
-      });
-      flatpickr("#vigencia_fin", {
-        dateFormat: "d/m/Y",
-        locale: "es",
-        onChange: actualizarCampos
-      });
-      ["folio", "remolque", "placas"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          // localStorage desactivado para evitar datos precargados
-          // const stored = localStorage.getItem(id);
-          el.addEventListener("input", () => {
-            actualizarCampos();
+      document.addEventListener("DOMContentLoaded", () => {
+        flatpickr("#vigencia_inicio", {
+          dateFormat: "d/m/Y",
+          locale: "es",
+          onChange: actualizarCampos
+        });
+        flatpickr("#vigencia_fin", {
+          dateFormat: "d/m/Y",
+          locale: "es",
+          onChange: actualizarCampos
+        });
+
+        const toggle = document.getElementById("recordar_datos");
+        const campos = ["folio", "remolque", "placas", "vigencia_inicio", "vigencia_fin"];
+        const recordar = localStorage.getItem("recordarDatos") === "true";
+        if (toggle) toggle.checked = recordar;
+
+        if (recordar) {
+          campos.forEach(id => {
+            const val = localStorage.getItem(id);
+            if (val) document.getElementById(id).value = val;
+          });
+          actualizarCampos();
+        }
+
+        campos.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.addEventListener("input", () => {
+              actualizarCampos();
+              if (toggle && toggle.checked) {
+                localStorage.setItem(id, el.value);
+              }
+            });
+          }
+        });
+
+        if (toggle) {
+          toggle.addEventListener("change", () => {
+            localStorage.setItem("recordarDatos", toggle.checked);
+            if (!toggle.checked) {
+              campos.forEach(id => localStorage.removeItem(id));
+            } else {
+              campos.forEach(id => {
+                localStorage.setItem(id, document.getElementById(id).value);
+              });
+            }
           });
         }
-      });
-      document.querySelectorAll(".text-field").forEach(el => {
-        el.addEventListener('mousedown', (e) => {
-          let offsetX = e.clientX - el.offsetLeft;
-          let offsetY = e.clientY - el.offsetTop;
-          function onMouseMove(e) {
-            el.style.left = `${e.clientX - offsetX}px`;
-            el.style.top = `${e.clientY - offsetY}px`;
-          }
-          function onMouseUp() {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-          }
-          document.addEventListener('mousemove', onMouseMove);
-          document.addEventListener('mouseup', onMouseUp);
+
+        document.querySelectorAll(".text-field").forEach(el => {
+          el.addEventListener('mousedown', (e) => {
+            let offsetX = e.clientX - el.offsetLeft;
+            let offsetY = e.clientY - el.offsetTop;
+            function onMouseMove(e) {
+              el.style.left = `${e.clientX - offsetX}px`;
+              el.style.top = `${e.clientY - offsetY}px`;
+            }
+            function onMouseUp() {
+              document.removeEventListener('mousemove', onMouseMove);
+              document.removeEventListener('mouseup', onMouseUp);
+            }
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+          });
         });
       });
-    });
   </script>
 </body>
 </html>
