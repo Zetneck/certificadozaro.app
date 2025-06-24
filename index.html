@@ -24,6 +24,12 @@
       gap: 30px;
       align-items: flex-start;
     }
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
     .form-section {
       background-color: #1f2937;
       padding: 20px;
@@ -98,6 +104,13 @@
       <input type="text" id="vigencia_inicio" placeholder="Selecciona fecha">
       <label for="vigencia_fin">Fecha fin: *</label>
       <input type="text" id="vigencia_fin" placeholder="Selecciona fecha">
+
+      <label for="pdf_quality">Calidad PDF:</label>
+      <select id="pdf_quality">
+        <option value="3">Alta</option>
+        <option value="2">Media</option>
+        <option value="1">Baja</option>
+      </select>
       
 <!-- Nuevos botones para zoom -->
 <div style="margin-top: 10px;">
@@ -105,13 +118,13 @@
   <button onclick="ajustarZoom(0.1)">➕ Zoom</button>
   <button onclick="generarPDF()">Descargar PDF</button>
   
-<div id="error-msg" style="color: #f87171; margin-top: 10px;"></div>
+<div id="error-msg" aria-live="polite" style="color: #f87171; margin-top: 10px;"></div>
 </div>
 
     </div>
     <div class="certificate-wrapper">
       <div id="certificate-container">
-        <div id="certificate">
+        <div id="certificate" role="img" aria-label="Certificado">
           <div id="folio_out" class="text-field" style="top: 111px; left: 1557px; font-family: 'Arial MT', Arial, sans-serif;"></div>
           <div id="remolque_out" class="text-field" style="top: 651px; left: 671px; font-family: 'Arial MT', Arial, sans-serif;"></div>
           <div id="placas_out" class="text-field" style="top: 651px; left: 843px; font-family: 'Arial MT', Arial, sans-serif;"></div>
@@ -148,6 +161,22 @@ function validarCampos() {
     }
   }
 
+  const folioVal = document.getElementById("folio").value;
+  if (!/^\d+$/.test(folioVal)) {
+    mostrarError("El folio debe ser numérico.");
+    return false;
+  }
+  const remolqueVal = document.getElementById("remolque").value;
+  if (!/^\d+$/.test(remolqueVal)) {
+    mostrarError("El remolque debe ser numérico.");
+    return false;
+  }
+  const placasVal = document.getElementById("placas").value;
+  if (!/^[A-Za-z0-9]{5,8}$/.test(placasVal)) {
+    mostrarError("Placas inválidas.");
+    return false;
+  }
+
   const inicio = document.getElementById("vigencia_inicio").value;
   const fin = document.getElementById("vigencia_fin").value;
   const iDate = new Date(inicio.split("/").reverse().join("/"));
@@ -166,11 +195,12 @@ function validarCampos() {
       setTimeout(() => {
         const element = document.getElementById("certificate");
         const remolque = document.getElementById("remolque").value || "certificado";
+        const scale = parseFloat(document.getElementById("pdf_quality").value) || 3;
         const opt = {
           margin: 0,
           filename: `Certificado ${remolque}.pdf`,
-          image: { type: 'jpeg', quality: 1 },
-          html2canvas: { scale: 3, useCORS: true },
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: scale, useCORS: true },
           jsPDF: { unit: 'px', format: [1800, 1273], orientation: 'landscape' }
         };
         html2pdf().set(opt).from(element).save();
