@@ -127,6 +127,11 @@
     </div>
   </div>
   <script>
+    // Configura tus claves de EmailJS aquí
+    const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+    const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
+    const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+
     let zoomLevel = 0.6;
     function actualizarCampos() {
       const inicio = document.getElementById("vigencia_inicio").value;
@@ -192,6 +197,14 @@ function mostrarCampoCorreo() {
 
 function enviarCorreo() {
   if (!validarCampos()) return;
+  if (
+    EMAILJS_PUBLIC_KEY.startsWith('YOUR_') ||
+    EMAILJS_SERVICE_ID.startsWith('YOUR_') ||
+    EMAILJS_TEMPLATE_ID.startsWith('YOUR_')
+  ) {
+    mostrarError('Configura tus claves de EmailJS antes de enviar correos.');
+    return;
+  }
   const correo = document.getElementById("correo_destino").value;
   if (!correo) {
     mostrarError("Ingresa un correo destino.");
@@ -214,8 +227,8 @@ function enviarCorreo() {
         to_email: correo,
         attachments: [{ name: `Certificado_${remolque}.pdf`, data: `data:application/pdf;base64,${base64}` }]
       };
-      // Reemplaza los IDs de servicio y plantilla con los proporcionados por EmailJS
-      emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', params)
+      // Envía el correo usando tu configuración de EmailJS
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
         .then(() => {
           alert('Correo enviado');
         })
@@ -236,7 +249,11 @@ function ajustarZoom(delta) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-      emailjs.init('YOUR_PUBLIC_KEY');
+      if (!EMAILJS_PUBLIC_KEY.startsWith('YOUR_')) {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+      } else {
+        console.warn('Configura EMAILJS_PUBLIC_KEY antes de enviar correos');
+      }
       flatpickr("#vigencia_inicio", {
         dateFormat: "d/m/Y",
         locale: "es",
