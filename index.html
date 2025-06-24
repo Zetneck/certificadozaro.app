@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Certificado ZARO Mejorado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 20px;
+      background-color: #0d1117;
+      color: #f9fafb;
+    }
+    .main-container {
+      display: flex;
+      flex-direction: row;
+      gap: 30px;
+      align-items: flex-start;
+    }
+    .form-section {
+      background-color: #1f2937;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 420px;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+      text-align: left;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background-color: #111827;
+      color: white;
+      margin-top: 4px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #14b8a6;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0d9488;
+    }
+    .certificate-wrapper {
+      overflow: auto;
+      border-radius: 8px;
+    }
+    #certificate-container {
+      transform: scale(0.6);
+      transform-origin: top left;
+    }
+    #certificate {
+      width: 1800px;
+      height: 1273px;
+      position: relative;
+      background-image: url('https://i.imgur.com/4ydKNkW.png');
+      background-size: 100% 100%;
+    }
+    .text-field {
+      position: absolute;
+      font-weight: bold;
+      color: black;
+      user-select: none;
+      cursor: move;
+      font-size: 29px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Certificado ZARO Mejorado</h2>
+  <div class="main-container">
+    <div class="form-section">
+      <label for="folio">Folio: *</label>
+      <input type="text" id="folio" placeholder="Ej. 10593">
+      <label for="remolque">Remolque: *</label>
+      <input type="text" id="remolque" placeholder="Ej. 666">
+      <label for="placas">Placas: *</label>
+      <input type="text" id="placas" placeholder="Ej. 6225886">
+      <label for="vigencia_inicio">Fecha inicio: *</label>
+      <input type="text" id="vigencia_inicio" placeholder="Selecciona fecha">
+      <label for="vigencia_fin">Fecha fin: *</label>
+      <input type="text" id="vigencia_fin" placeholder="Selecciona fecha">
+      
+<button onclick="generarPDF()">Descargar PDF</button>
+<!-- Nuevos botones para zoom -->
+<div style="margin-top: 10px;">
+  <button onclick="ajustarZoom(0.1)">➕ Zoom</button>
+  <button onclick="ajustarZoom(-0.1)">➖ Zoom</button>
+<div id="error-msg" style="color: #f87171; margin-top: 10px;"></div>
+</div>
+
+    </div>
+    <div class="certificate-wrapper">
+      <div id="certificate-container">
+        <div id="certificate">
+          <div id="folio_out" class="text-field" style="top: 111px; left: 1557px; font-family: 'Arial MT', Arial, sans-serif;"></div>
+          <div id="remolque_out" class="text-field" style="top: 651px; left: 671px; font-family: 'Arial MT', Arial, sans-serif;"></div>
+          <div id="placas_out" class="text-field" style="top: 651px; left: 843px; font-family: 'Arial MT', Arial, sans-serif;"></div>
+          <div id="vigencia_out" class="text-field" style="top: 849px; left: 786px; font-family: 'Arial MT', Arial, sans-serif;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let zoomLevel = 0.6;
+    function actualizarCampos() {
+      const inicio = document.getElementById("vigencia_inicio").value;
+      const fin = document.getElementById("vigencia_fin").value;
+      document.getElementById("folio_out").textContent = document.getElementById("folio").value;
+      document.getElementById("remolque_out").textContent = document.getElementById("remolque").value;
+      document.getElementById("placas_out").textContent = document.getElementById("placas").value;
+      document.getElementById("vigencia_out").textContent = (inicio && fin) ? `${inicio} AL ${fin}` : "";
+    }
+    
+function mostrarError(msg) {
+  const errorDiv = document.getElementById("error-msg");
+  if (errorDiv) errorDiv.textContent = msg;
+}
+
+function validarCampos() {
+  const errorDiv = document.getElementById("error-msg");
+  if (errorDiv) errorDiv.textContent = "";
+
+  const campos = ["folio", "remolque", "placas", "vigencia_inicio", "vigencia_fin"];
+  for (const id of campos) {
+    if (!document.getElementById(id).value) {
+      mostrarError("Completa todos los campos obligatorios.");
+      return false;
+    }
+  }
+
+  const inicio = document.getElementById("vigencia_inicio").value;
+  const fin = document.getElementById("vigencia_fin").value;
+  const iDate = new Date(inicio.split("/").reverse().join("/"));
+  const fDate = new Date(fin.split("/").reverse().join("/"));
+  if (iDate > fDate) {
+    mostrarError("La fecha de inicio debe ser anterior a la de fin.");
+    return false;
+  }
+
+  return true;
+}
+
+    function generarPDF() {
+      if (!validarCampos()) return;
+      actualizarCampos();
+      setTimeout(() => {
+        const element = document.getElementById("certificate");
+        const remolque = document.getElementById("remolque").value || "certificado";
+        const opt = {
+          margin: 0,
+          filename: `Certificado ${remolque}.pdf`,
+          image: { type: 'jpeg', quality: 1 },
+          html2canvas: { scale: 3, useCORS: true },
+          jsPDF: { unit: 'px', format: [1800, 1273], orientation: 'landscape' }
+        };
+        html2pdf().set(opt).from(element).save();
+      }, 100);
+    }
+    
+function ajustarZoom(delta) {
+  zoomLevel += delta;
+  if (zoomLevel < 0.3) zoomLevel = 0.3;
+  if (zoomLevel > 1.5) zoomLevel = 1.5;
+  document.getElementById("certificate-container").style.transform = `scale(${zoomLevel})`;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+      flatpickr("#vigencia_inicio", {
+        dateFormat: "d/m/Y",
+        locale: "es",
+        onChange: actualizarCampos
+      });
+      flatpickr("#vigencia_fin", {
+        dateFormat: "d/m/Y",
+        locale: "es",
+        onChange: actualizarCampos
+      });
+      ["folio", "remolque", "placas"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          // localStorage desactivado para evitar datos precargados
+          // const stored = localStorage.getItem(id);
+          el.addEventListener("input", () => {
+            actualizarCampos();
+            actualizarCampos();
+          });
+        }
+      });
+      document.querySelectorAll(".text-field").forEach(el => {
+        el.addEventListener('mousedown', (e) => {
+          let offsetX = e.clientX - el.offsetLeft;
+          let offsetY = e.clientY - el.offsetTop;
+          function onMouseMove(e) {
+            el.style.left = `${e.clientX - offsetX}px`;
+            el.style.top = `${e.clientY - offsetY}px`;
+          }
+          function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          }
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
