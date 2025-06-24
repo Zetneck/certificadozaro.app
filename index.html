@@ -37,20 +37,29 @@
       font-weight: 600;
       text-align: left;
     }
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #374151;
-      background-color: #111827;
-      color: white;
-      margin-top: 4px;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #14b8a6;
-      color: white;
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #374151;
+        background-color: #111827;
+        color: white;
+        margin-top: 4px;
+      }
+      input[type="number"], input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #374151;
+        background-color: #111827;
+        color: white;
+        margin-top: 4px;
+      }
+      button {
+        margin-top: 15px;
+        padding: 10px 20px;
+        background-color: #14b8a6;
+        color: white;
       border: none;
       border-radius: 5px;
       font-weight: bold;
@@ -73,15 +82,20 @@
       position: relative;
       background-image: url('https://i.imgur.com/4ydKNkW.png');
       background-size: 100% 100%;
-    }
-    .text-field {
-      position: absolute;
-      font-weight: bold;
-      color: black;
-      user-select: none;
-      cursor: move;
-      font-size: 29px;
-    }
+      }
+      .text-field {
+        position: absolute;
+        font-weight: bold;
+        color: black;
+        user-select: none;
+        cursor: move;
+        font-size: 29px;
+      }
+      .draggable-image {
+        position: absolute;
+        cursor: move;
+        max-width: 300px;
+      }
   </style>
 </head>
 <body>
@@ -97,8 +111,18 @@
       <label for="vigencia_inicio">Fecha inicio: *</label>
       <input type="text" id="vigencia_inicio" placeholder="Selecciona fecha">
       <label for="vigencia_fin">Fecha fin: *</label>
-      <input type="text" id="vigencia_fin" placeholder="Selecciona fecha">
-      
+        <input type="text" id="vigencia_fin" placeholder="Selecciona fecha">
+
+        <label for="imgUpload">Agregar imagen (logo/firma):</label>
+        <input type="file" id="imgUpload" accept="image/*">
+
+        <label for="certMarginTop">Margen superior (px):</label>
+        <input type="number" id="certMarginTop" value="0">
+
+        <label for="certMarginLeft">Margen izquierdo (px):</label>
+        <input type="number" id="certMarginLeft" value="0">
+        <button onclick="actualizarMargenes()">Aplicar márgenes</button>
+
 <!-- Nuevos botones para zoom -->
 <div style="margin-top: 10px;">
   <button onclick="ajustarZoom(-0.1)">➖ Zoom</button>
@@ -120,8 +144,50 @@
       </div>
     </div>
   </div>
-  <script>
-    let zoomLevel = 0.6;
+    <script>
+      let zoomLevel = 0.6;
+
+      function habilitarArrastre(el) {
+        el.addEventListener('mousedown', (e) => {
+          let offsetX = e.clientX - el.offsetLeft;
+          let offsetY = e.clientY - el.offsetTop;
+          function onMouseMove(e) {
+            el.style.left = `${e.clientX - offsetX}px`;
+            el.style.top = `${e.clientY - offsetY}px`;
+          }
+          function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          }
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      }
+
+      function manejarCargaImagen(evt) {
+        const file = evt.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.className = 'draggable-image';
+          img.style.top = '100px';
+          img.style.left = '100px';
+          document.getElementById('certificate').appendChild(img);
+          habilitarArrastre(img);
+        };
+        reader.readAsDataURL(file);
+        evt.target.value = '';
+      }
+
+      function actualizarMargenes() {
+        const top = document.getElementById('certMarginTop').value || 0;
+        const left = document.getElementById('certMarginLeft').value || 0;
+        const cert = document.getElementById('certificate');
+        cert.style.marginTop = `${top}px`;
+        cert.style.marginLeft = `${left}px`;
+      }
     function actualizarCampos() {
       const inicio = document.getElementById("vigencia_inicio").value;
       const fin = document.getElementById("vigencia_fin").value;
@@ -195,33 +261,16 @@ document.addEventListener("DOMContentLoaded", () => {
         locale: "es",
         onChange: actualizarCampos
       });
-      ["folio", "remolque", "placas"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          // localStorage desactivado para evitar datos precargados
-          // const stored = localStorage.getItem(id);
-          el.addEventListener("input", () => {
-            actualizarCampos();
-          });
-        }
-      });
-      document.querySelectorAll(".text-field").forEach(el => {
-        el.addEventListener('mousedown', (e) => {
-          let offsetX = e.clientX - el.offsetLeft;
-          let offsetY = e.clientY - el.offsetTop;
-          function onMouseMove(e) {
-            el.style.left = `${e.clientX - offsetX}px`;
-            el.style.top = `${e.clientY - offsetY}px`;
+        ["folio", "remolque", "placas"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.addEventListener("input", actualizarCampos);
           }
-          function onMouseUp() {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-          }
-          document.addEventListener('mousemove', onMouseMove);
-          document.addEventListener('mouseup', onMouseUp);
         });
+        document.querySelectorAll(".text-field").forEach(habilitarArrastre);
+        const imgInput = document.getElementById("imgUpload");
+        if (imgInput) imgInput.addEventListener('change', manejarCargaImagen);
       });
-    });
   </script>
 </body>
 </html>
