@@ -206,13 +206,14 @@ function enviarCorreo() {
     html2canvas: { scale: 3, useCORS: true },
     jsPDF: { unit: 'px', format: [1800, 1273], orientation: 'landscape' }
   };
-  html2pdf().set(opt).from(element).outputPdf('blob').then(blob => {
+  html2pdf().set(opt).from(element).outputPdf().then(pdf => {
+    const blob = pdf.output('blob');
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result.split(',')[1];
       const params = {
         to_email: correo,
-        attachments: [{ name: `Certificado_${remolque}.pdf`, data: base64 }]
+        attachments: [{ name: `Certificado_${remolque}.pdf`, data: `data:application/pdf;base64,${base64}` }]
       };
       // Reemplaza los IDs de servicio y plantilla con los proporcionados por EmailJS
       emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', params)
@@ -220,7 +221,7 @@ function enviarCorreo() {
           alert('Correo enviado');
         })
         .catch(err => {
-          alert('Error al enviar correo');
+          alert('Error al enviar correo: ' + (err.text || err));
           console.error(err);
         });
     };
