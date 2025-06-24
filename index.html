@@ -224,9 +224,9 @@ function enviarCorreo() {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result.split(',')[1];
-      // La API de EmailJS limita el tama\xc3\xb1o de las variables a 50KB
-      if (base64.length > 70000) { // ~50KB en bytes al estar codificado en base64
-        mostrarError('El PDF generado supera el l\xc3\xadmite de 50KB. Intenta reducir su tama\xc3\xb1o.');
+      // Permitir adjuntos de hasta 3MB
+      if (blob.size > 3 * 1024 * 1024) {
+        mostrarError('El PDF generado supera el límite de 3MB. Intenta reducir su tamaño.');
         return;
       }
       const params = {
