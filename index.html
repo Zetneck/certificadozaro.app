@@ -206,8 +206,7 @@ function enviarCorreo() {
     html2canvas: { scale: 3, useCORS: true },
     jsPDF: { unit: 'px', format: [1800, 1273], orientation: 'landscape' }
   };
-  html2pdf().set(opt).from(element).outputPdf().then(pdf => {
-    const blob = pdf.output('blob');
+  html2pdf().set(opt).from(element).outputPdf('blob').then(blob => {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result.split(',')[1];
