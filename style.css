@@ -1,0 +1,75 @@
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 20px;
+      background-color: #0d1117;
+      color: #f9fafb;
+    }
+    .main-container {
+      display: flex;
+      flex-direction: row;
+      gap: 30px;
+      align-items: flex-start;
+    }
+    .form-section {
+      background-color: #1f2937;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 420px;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+      text-align: left;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background-color: #111827;
+      color: white;
+      margin-top: 4px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #14b8a6;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0d9488;
+    }
+    .certificate-wrapper {
+      overflow: auto;
+      border-radius: 8px;
+    }
+    #certificate-container {
+      transform: scale(0.6);
+      transform-origin: top left;
+      transition: transform 0.3s ease-in-out;
+    }
+    #certificate-container.zooming {
+      box-shadow: 0 0 25px rgba(20, 184, 166, 0.5);
+    }
+    #certificate {
+      width: 1800px;
+      height: 1273px;
+      position: relative;
+      background-image: url('https://i.imgur.com/qYdFFAB.png');
+      background-size: 100% 100%;
+    }
+    .text-field {
+      position: absolute;
+      font-weight: bold;
+      color: black;
+      user-select: none;
+      cursor: move;
+      font-size: 29px;
+    }
