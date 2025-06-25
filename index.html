@@ -66,6 +66,10 @@
     #certificate-container {
       transform: scale(0.6);
       transform-origin: top left;
+      transition: transform 0.3s ease-in-out;
+    }
+    #certificate-container.zooming {
+      box-shadow: 0 0 25px rgba(20, 184, 166, 0.5);
     }
     #certificate {
       width: 1800px;
@@ -98,17 +102,15 @@
       <input type="text" id="vigencia_inicio" placeholder="Selecciona fecha">
       <label for="vigencia_fin">Fecha fin: *</label>
       <input type="text" id="vigencia_fin" placeholder="Selecciona fecha">
-      
-<!-- Nuevos botones para zoom -->
-<div style="margin-top: 10px;">
-  <button onclick="ajustarZoom(-0.1)">➖ Zoom</button>
-  <button onclick="ajustarZoom(0.1)">➕ Zoom</button>
-  <button onclick="generarPDF()">Descargar PDF</button>
-  
-<div id="error-msg" style="color: #f87171; margin-top: 10px;"></div>
-</div>
 
+      <div style="margin-top: 10px;">
+        <button onclick="ajustarZoom(-0.1)">➖ Zoom</button>
+        <button onclick="ajustarZoom(0.1)">➕ Zoom</button>
+        <button onclick="generarPDF()">Descargar PDF</button>
+        <div id="error-msg" style="color: #f87171; margin-top: 10px;"></div>
+      </div>
     </div>
+
     <div class="certificate-wrapper">
       <div id="certificate-container">
         <div id="certificate">
@@ -120,8 +122,10 @@
       </div>
     </div>
   </div>
+
   <script>
     let zoomLevel = 0.6;
+
     function actualizarCampos() {
       const inicio = document.getElementById("vigencia_inicio").value;
       const fin = document.getElementById("vigencia_fin").value;
@@ -130,35 +134,35 @@
       document.getElementById("placas_out").textContent = document.getElementById("placas").value;
       document.getElementById("vigencia_out").textContent = (inicio && fin) ? `${inicio} AL ${fin}` : "";
     }
-    
-function mostrarError(msg) {
-  const errorDiv = document.getElementById("error-msg");
-  if (errorDiv) errorDiv.textContent = msg;
-}
 
-function validarCampos() {
-  const errorDiv = document.getElementById("error-msg");
-  if (errorDiv) errorDiv.textContent = "";
-
-  const campos = ["folio", "remolque", "placas", "vigencia_inicio", "vigencia_fin"];
-  for (const id of campos) {
-    if (!document.getElementById(id).value) {
-      mostrarError("Completa todos los campos obligatorios.");
-      return false;
+    function mostrarError(msg) {
+      const errorDiv = document.getElementById("error-msg");
+      if (errorDiv) errorDiv.textContent = msg;
     }
-  }
 
-  const inicio = document.getElementById("vigencia_inicio").value;
-  const fin = document.getElementById("vigencia_fin").value;
-  const iDate = new Date(inicio.split("/").reverse().join("/"));
-  const fDate = new Date(fin.split("/").reverse().join("/"));
-  if (iDate > fDate) {
-    mostrarError("La fecha de inicio debe ser anterior a la de fin.");
-    return false;
-  }
+    function validarCampos() {
+      const errorDiv = document.getElementById("error-msg");
+      if (errorDiv) errorDiv.textContent = "";
 
-  return true;
-}
+      const campos = ["folio", "remolque", "placas", "vigencia_inicio", "vigencia_fin"];
+      for (const id of campos) {
+        if (!document.getElementById(id).value) {
+          mostrarError("Completa todos los campos obligatorios.");
+          return false;
+        }
+      }
+
+      const inicio = document.getElementById("vigencia_inicio").value;
+      const fin = document.getElementById("vigencia_fin").value;
+      const iDate = new Date(inicio.split("/").reverse().join("/"));
+      const fDate = new Date(fin.split("/").reverse().join("/"));
+      if (iDate > fDate) {
+        mostrarError("La fecha de inicio debe ser anterior a la de fin.");
+        return false;
+      }
+
+      return true;
+    }
 
     function generarPDF() {
       if (!validarCampos()) return;
@@ -176,15 +180,20 @@ function validarCampos() {
         html2pdf().set(opt).from(element).save();
       }, 100);
     }
-    
-function ajustarZoom(delta) {
-  zoomLevel += delta;
-  if (zoomLevel < 0.3) zoomLevel = 0.3;
-  if (zoomLevel > 1.5) zoomLevel = 1.5;
-  document.getElementById("certificate-container").style.transform = `scale(${zoomLevel})`;
-}
 
-document.addEventListener("DOMContentLoaded", () => {
+    function ajustarZoom(delta) {
+      const container = document.getElementById("certificate-container");
+      container.classList.add("zooming");
+
+      zoomLevel += delta;
+      if (zoomLevel < 0.3) zoomLevel = 0.3;
+      if (zoomLevel > 1.5) zoomLevel = 1.5;
+      container.style.transform = `scale(${zoomLevel})`;
+
+      setTimeout(() => container.classList.remove("zooming"), 300);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
       flatpickr("#vigencia_inicio", {
         dateFormat: "d/m/Y",
         locale: "es",
@@ -198,8 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ["folio", "remolque", "placas"].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-          // localStorage desactivado para evitar datos precargados
-          // const stored = localStorage.getItem(id);
           el.addEventListener("input", () => {
             actualizarCampos();
           });
