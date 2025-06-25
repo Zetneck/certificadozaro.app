@@ -194,6 +194,15 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      const posicionesGuardadas = JSON.parse(localStorage.getItem("posicionesCampos")) || {};
+      document.querySelectorAll(".text-field").forEach(el => {
+        const id = el.id;
+        if (posicionesGuardadas[id]) {
+          el.style.left = posicionesGuardadas[id].left;
+          el.style.top = posicionesGuardadas[id].top;
+        }
+      });
+
       flatpickr("#vigencia_inicio", {
         dateFormat: "d/m/Y",
         locale: "es",
@@ -221,6 +230,13 @@
             el.style.top = `${e.clientY - offsetY}px`;
           }
           function onMouseUp() {
+  // Guardar posición en localStorage
+  const id = el.id;
+  const left = el.style.left;
+  const top = el.style.top;
+  const posiciones = JSON.parse(localStorage.getItem("posicionesCampos")) || {};
+  posiciones[id] = { left, top };
+  localStorage.setItem("posicionesCampos", JSON.stringify(posiciones));
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
           }
