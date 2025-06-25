@@ -1,0 +1,27 @@
+.certificate-wrapper {
+  overflow: auto;
+  border-radius: 8px;
+}
+#certificate-container {
+  transform: scale(0.6);
+  transform-origin: top left;
+  transition: transform 0.3s ease-in-out;
+}
+#certificate-container.zooming {
+  box-shadow: 0 0 25px rgba(20, 184, 166, 0.5);
+}
+#certificate {
+  width: 1800px;
+  height: 1273px;
+  position: relative;
+  background-image: url('https://i.imgur.com/qYdFFAB.png');
+  background-size: 100% 100%;
+}
+.text-field {
+  position: absolute;
+  font-weight: bold;
+  color: black;
+  user-select: none;
+  cursor: move;
+  font-size: 29px;
+}

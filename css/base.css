@@ -1,0 +1,13 @@
+* { box-sizing: border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 20px;
+  background-color: #0d1117;
+  color: #f9fafb;
+}
+.main-container {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  align-items: flex-start;
+}
